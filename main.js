@@ -2,7 +2,7 @@ var id = window.location.href.split("/")[3].replace(/[^a-zA-Z0-9]/g, '')
 if (id == ''){
     id = makeid(6)
     console.log(id)
-    window.location.href = "/#"+id
+    window.location.href = "/"+id
 }
 var theConnection = null;
 var peer = new Peer(id);
@@ -84,7 +84,7 @@ function makeid(length) {
 }
 
 let searchbar = document.querySelector(".link")
-searchbar.innerHTML = "codeshare.live/#"+id
+searchbar.innerHTML = "codeshare.live/"+id
 
 // Fix CSS
 let editor = document.querySelector(".editor")
@@ -118,6 +118,7 @@ let copy = document.querySelector(".copy")
 let copied = document.querySelector(".copied")
 
 copy.onclick = () => {
+    console.log(navigator.clipboard)
     navigator.clipboard.writeText(window.editor.getValue());
     copy.style.display = "none"
     copied.style.display = "block"
