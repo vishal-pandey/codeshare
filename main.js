@@ -58,7 +58,7 @@ let proxy = URL.createObjectURL(new Blob([`
 `], { type: 'text/javascript' }));
 
 require(["vs/editor/editor.main"], function () {
-	window.editor = monaco.editor.create(document.getElementById('container'), {
+	window.editor = monaco.editor.create(document.getElementById('editor'), {
 		value: [].join('\n'),
 		language: null,
 		theme: 'vs-dark'
@@ -73,7 +73,7 @@ require(["vs/editor/editor.main"], function () {
 
 function makeid(length) {
     let result = '';
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
     const charactersLength = characters.length;
     let counter = 0;
     while (counter < length) {
@@ -81,4 +81,48 @@ function makeid(length) {
       counter += 1;
     }
     return result;
+}
+
+let searchbar = document.querySelector(".link")
+searchbar.innerHTML = "codeshare.live/#"+id
+
+// Fix CSS
+let editor = document.querySelector(".editor")
+let container = document.querySelector(".container").clientHeight
+let header = document.querySelector(".header").clientHeight
+let footer = document.querySelector(".footer").clientHeight
+
+editor.style.height = container - header - footer + "px"
+
+let downloadButton = document.querySelector(".download")
+downloadButton.onclick = () => {
+    console.log("click")
+    download(id+".txt", window.editor.getValue())
+}
+
+function download(filename, text) {
+    var element = document.createElement('a');
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+    element.setAttribute('download', filename);
+  
+    element.style.display = 'none';
+    document.body.appendChild(element);
+  
+    element.click();
+  
+    document.body.removeChild(element);
+}
+
+
+let copy = document.querySelector(".copy")
+let copied = document.querySelector(".copied")
+
+copy.onclick = () => {
+    navigator.clipboard.writeText(window.editor.getValue());
+    copy.style.display = "none"
+    copied.style.display = "block"
+    setTimeout(()=>{
+        copy.style.display = "block"
+        copied.style.display = "none"
+    }, 2000)
 }
