@@ -2,40 +2,63 @@ var id = window.location.href.split("/")[3].replace(/[^a-zA-Z0-9]/g, '')
 if (id == ''){
     id = makeid(6)
     console.log(id)
-    window.location.href = "/"+id
+    window.location.href = "/#"+id
 }
-var theConnection = null;
-var peer = new Peer(id);
+
 var incoming = false
+var theConnection = null;
 
-peer.on("connection", (conn)=>{
-    theConnection = conn
-    conn.on("data", (data)=>{
-        getData(data)
+function mainFunction() {
+
+    var peer = new Peer(id);
+    
+    peer.on("connection", (conn)=>{
+        theConnection = conn
+        conn.on("data", (data)=>{
+            getData(data)
+        })
+        conn.on("open", ()=>{
+            let data = window.editor.getValue()
+            sendData(data)
+        })
     })
-})
+    
+    peer.on("open", (id)=>{
+        console.log(id, "ID")
+        window.addEventListener("onunload", ()=>{
+            peer.destroy()
+        })
+    })
+    
+    
+    
+    peer.on("error", (err)=>{
+        if(err.type==="unavailable-id") {
+            var peer1 = new Peer();
+            peer1.on("open", ()=>{
+                const conn = peer1.connect(id);
+                theConnection = conn
+                conn.on("data", (data)=>{
+                    getData(data)
+                })
 
-peer.on("open", (id)=>{
-    console.log(id, "ID")
-})
-
-
-peer.on("error", (err)=>{
-    if(err.type==="unavailable-id") {
-        var peer1 = new Peer();
-        peer1.on("open", ()=>{
-            const conn = peer1.connect(id);
-            theConnection = conn
-            conn.on("data", (data)=>{
-                getData(data)
+                conn.on("close", ()=>{
+                    mainFunction()
+                })
             })
-        })
 
-        peer1.on("error", (err)=>{
-            console.log(err.type)
-        })
-    }
-})
+    
+            peer1.on("error", (err)=>{
+                console.log(err.type)
+            })
+        }
+    })
+}
+
+mainFunction()
+
+
+
 
 function getData(data) {
     incoming = true
@@ -126,4 +149,11 @@ copy.onclick = () => {
         copy.style.display = "block"
         copied.style.display = "none"
     }, 2000)
+}
+
+
+let languageSelector = document.querySelector("#language")
+languageSelector.onchange = (e)=>{
+    let lang = languageSelector.value
+    window.monaco.editor.setModelLanguage(window.monaco.editor.getModels()[0], lang) 
 }
