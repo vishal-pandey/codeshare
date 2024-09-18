@@ -42,9 +42,34 @@ body{
 	background-color: #007acc;
 	display: flex;
 	align-items: center;
+	justify-content: space-around;
+}
+
+.footer .left{
+	display: flex;
+	align-items: center;
+	justify-content: left;
+	width: 40%;
+	padding-left: 20px;
+}
+
+.footer .right{
+	display: flex;
+	align-items: center;
 	justify-content: right;
+	width: 40%;
 	padding-right: 20px;
 }
+
+.footer .center{
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 20%;
+}
+
+
+
 
 .download, .copy{
 	/* padding-left: 10px; */
@@ -88,3 +113,16 @@ body{
 	padding: 0;
 	overflow: hidden;
 } */
+
+.indicator, .peerMode{
+	width: 15px;
+	height: 15px;
+	background-color: rgb(204, 72, 72);
+	border-radius: 50%;
+	border: 1px solid #1e1e1e;
+	margin: 0px 3px;
+}
+
+.peerMode{
+	background-color: white;
+}

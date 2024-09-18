@@ -7,6 +7,10 @@ if (id == ''){
 
 var incoming = false
 var theConnection = null;
+var isRemoteAlive = null;
+var connectionTracker = null;
+var liveCounter = 0
+var liveCounter_ = 0
 
 function mainFunction() {
 
@@ -24,6 +28,7 @@ function mainFunction() {
     })
     
     peer.on("open", (id)=>{
+        setHost()
         console.log(id, "ID")
         window.addEventListener("onunload", ()=>{
             peer.destroy()
@@ -36,10 +41,24 @@ function mainFunction() {
         if(err.type==="unavailable-id") {
             var peer1 = new Peer();
             peer1.on("open", ()=>{
+                setRemote()
                 const conn = peer1.connect(id);
                 theConnection = conn
                 conn.on("data", (data)=>{
                     getData(data)
+                })
+
+                conn.on("open", ()=>{
+                    connectionTracker = true
+                    sendData("!!!PING!!!")
+                    let interval = setInterval(()=>{
+                        if(connectionTracker === false) {
+                            clearInterval(interval)
+                            mainFunction()
+                        } else {
+                            connectionTracker = false
+                        }
+                    }, 2100)
                 })
 
                 conn.on("close", ()=>{
@@ -60,11 +79,59 @@ mainFunction()
 
 
 
-function getData(data) {
-    incoming = true
-    window.editor.setValue(data)
-    incoming = false
+async function getData(data) {
+    if(data === "!!!PING!!!") {
+        connectionTracker = true
+        displayLive()
+        liveCounter = liveCounter + 1
+        setTimeout(()=>{
+            // console.log("PING")
+            liveCounter = liveCounter + 1
+            sendData("!!!PING!!!")
+        }, 1000)
+    } else {
+        incoming = true
+        window.editor.setValue(data)
+        incoming = false
+    }
 }
+
+
+
+// Check if other peer is connected or not
+setInterval(()=>{
+    console.log(isRemoteAlive, liveCounter, liveCounter_)
+    if(liveCounter != liveCounter_) {
+        isRemoteAlive = true
+        liveCounter_ = liveCounter
+    } else {
+        displayNotLive()
+        isRemoteAlive = false
+    }
+}, 3400)
+
+
+// Display Live not Live
+
+let indicator = document.querySelector(".indicator")
+let peerMode = document.querySelector(".peerMode")
+
+function displayLive() {
+    indicator.style.backgroundColor = '#17825d'
+}
+
+function displayNotLive() {
+    indicator.style.backgroundColor = 'rgb(204, 72, 72)'
+}
+
+function setHost() {
+    console.log("HOWNOWER")
+    peerMode.style.backgroundColor = 'purple'
+}
+function setRemote() {
+    peerMode.style.backgroundColor = 'yellow'
+}
+
 
 function sendData(data) {
     theConnection.send(data)
