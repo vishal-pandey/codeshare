@@ -2,7 +2,7 @@ var id = window.location.href.split("/")[3].replace(/[^a-zA-Z0-9]/g, '')
 if (id == ''){
     id = makeid(6)
     console.log(id)
-    window.location.href = "/#"+id
+    window.location.href = "/"+id
 }
 
 var incoming = false
