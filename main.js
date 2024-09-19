@@ -90,6 +90,7 @@ async function getData(data) {
             sendData("!!!PING!!!")
         }, 1000)
     } else {
+        displayLive()
         incoming = true
         window.editor.setValue(data)
         incoming = false
