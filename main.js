@@ -21,9 +21,9 @@ var peer = new Peer(id, {
     secure: true,
     config: {
         'iceServers': [
-            { url: 'stun:ice.codeshare.live:3478' },
+            { urls: 'stun:ice.codeshare.live:3478' },
             {
-                url: 'turn:ice.codeshare.live:3478',
+                urls: 'turn:ice.codeshare.live:3478',
                 username: 'testuser',
                 credential: 'testpass'
             }
@@ -54,7 +54,22 @@ var peer = new Peer(id, {
     
     peer.on("error", (err)=>{
         if(err.type==="unavailable-id") {
-            var peer1 = new Peer();
+            var peer1 = new Peer({
+                host: 'peerjs.codeshare.live',
+                port: 443,
+                path: '/',
+                secure: true,
+                config: {
+                    'iceServers': [
+                        { urls: 'stun:ice.codeshare.live:3478' },
+                        {
+                            urls: 'turn:ice.codeshare.live:3478',
+                            username: 'testuser',
+                            credential: 'testpass'
+                        }
+                    ]
+                }
+            });
             peer1.on("open", ()=>{
                 setRemote()
                 const conn = peer1.connect(id);
