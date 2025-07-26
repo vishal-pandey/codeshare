@@ -14,7 +14,18 @@ var liveCounter_ = 0
 
 function mainFunction() {
 
-    var peer = new Peer(id);
+var peer = new Peer(id, {
+    config: {
+        'iceServers': [
+            { url: 'stun:ice.codeshare.live:3478' },
+            {
+                url: 'turn:ice.codeshare.live:3478',
+                username: 'testuser',
+                credential: 'testpass'
+            }
+        ]
+    }
+});
     
     peer.on("connection", (conn)=>{
         theConnection = conn
@@ -142,18 +153,18 @@ require.config({ paths: { 'vs': 'https://unpkg.com/monaco-editor@latest/min/vs' 
 window.MonacoEnvironment = { getWorkerUrl: () => proxy };
 
 let proxy = URL.createObjectURL(new Blob([`
-	self.MonacoEnvironment = {
-		baseUrl: 'https://unpkg.com/monaco-editor@latest/min/'
-	};
-	importScripts('https://unpkg.com/monaco-editor@latest/min/vs/base/worker/workerMain.js');
+    self.MonacoEnvironment = {
+        baseUrl: 'https://unpkg.com/monaco-editor@latest/min/'
+    };
+    importScripts('https://unpkg.com/monaco-editor@latest/min/vs/base/worker/workerMain.js');
 `], { type: 'text/javascript' }));
 
 require(["vs/editor/editor.main"], function () {
-	window.editor = monaco.editor.create(document.getElementById('editor'), {
-		value: [].join('\n'),
-		language: null,
-		theme: 'vs-dark'
-	});
+    window.editor = monaco.editor.create(document.getElementById('editor'), {
+        value: [].join('\n'),
+        language: null,
+        theme: 'vs-dark'
+    });
     window.editor.getModel().onDidChangeContent((event) => {
         if(!incoming) {
             let data = window.editor.getValue()
