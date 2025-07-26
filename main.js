@@ -15,6 +15,10 @@ var liveCounter_ = 0
 function mainFunction() {
 
 var peer = new Peer(id, {
+    host: 'peerjs.codeshare.live',
+    port: 443,
+    path: '/',
+    secure: true,
     config: {
         'iceServers': [
             { url: 'stun:ice.codeshare.live:3478' },
