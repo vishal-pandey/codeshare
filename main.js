@@ -32,13 +32,21 @@ var peer = new Peer(id, {
 });
     
     peer.on("connection", (conn)=>{
+        console.log("Incoming connection received")
         theConnection = conn
         conn.on("data", (data)=>{
             getData(data)
         })
         conn.on("open", ()=>{
-            let data = window.editor.getValue()
+            console.log("Connection opened, sending initial data")
+            let data = window.editor ? window.editor.getValue() : ""
             sendData(data)
+        })
+        conn.on("close", ()=>{
+            console.log("Connection closed")
+        })
+        conn.on("error", (err)=>{
+            console.log("Connection error:", err)
         })
     })
     
@@ -71,6 +79,7 @@ var peer = new Peer(id, {
                 }
             });
             peer1.on("open", ()=>{
+                console.log("Peer1 opened, connecting to:", id)
                 setRemote()
                 const conn = peer1.connect(id);
                 theConnection = conn
@@ -79,6 +88,7 @@ var peer = new Peer(id, {
                 })
 
                 conn.on("open", ()=>{
+                    console.log("Remote connection established")
                     connectionTracker = true
                     sendData("!!!PING!!!")
                     let interval = setInterval(()=>{
@@ -92,7 +102,12 @@ var peer = new Peer(id, {
                 })
 
                 conn.on("close", ()=>{
+                    console.log("Remote connection closed")
                     mainFunction()
+                })
+                
+                conn.on("error", (err)=>{
+                    console.log("Remote connection error:", err)
                 })
             })
 
@@ -110,6 +125,7 @@ mainFunction()
 
 
 async function getData(data) {
+    console.log("Data received:", typeof data, data.length ? data.length + " characters" : data)
     if(data === "!!!PING!!!") {
         connectionTracker = true
         displayLive()
@@ -122,7 +138,12 @@ async function getData(data) {
     } else {
         displayLive()
         incoming = true
-        window.editor.setValue(data)
+        if(window.editor) {
+            window.editor.setValue(data)
+            console.log("Editor updated with received data")
+        } else {
+            console.log("Editor not ready yet")
+        }
         incoming = false
     }
 }
@@ -165,7 +186,12 @@ function setRemote() {
 
 
 function sendData(data) {
-    theConnection.send(data)
+    if(theConnection && theConnection.open) {
+        theConnection.send(data)
+        console.log("Data sent:", data.length + " characters")
+    } else {
+        console.log("Connection not ready, cannot send data")
+    }
 }
 
 require.config({ paths: { 'vs': 'https://unpkg.com/monaco-editor@latest/min/vs' }});
@@ -187,6 +213,7 @@ require(["vs/editor/editor.main"], function () {
     window.editor.getModel().onDidChangeContent((event) => {
         if(!incoming) {
             let data = window.editor.getValue()
+            console.log("Editor changed, sending data:", data.length + " characters")
             sendData(data)
         }
     });
