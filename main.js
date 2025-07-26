@@ -57,6 +57,17 @@ var peer = new Peer(id, {
     peer.on("connection", (conn)=>{
         console.log("Incoming connection received")
         theConnection = conn
+        
+        // Monitor ICE connection state on host side
+        if(conn.peerConnection) {
+            conn.peerConnection.oniceconnectionstatechange = () => {
+                console.log("Host ICE connection state:", conn.peerConnection.iceConnectionState)
+            }
+            conn.peerConnection.onconnectionstatechange = () => {
+                console.log("Host connection state:", conn.peerConnection.connectionState)
+            }
+        }
+        
         conn.on("data", (data)=>{
             getData(data)
         })
@@ -131,11 +142,21 @@ var peer = new Peer(id, {
                     });
                     theConnection = conn
                     
+                    // Monitor ICE connection state
+                    if(conn.peerConnection) {
+                        conn.peerConnection.oniceconnectionstatechange = () => {
+                            console.log("ICE connection state:", conn.peerConnection.iceConnectionState)
+                        }
+                        conn.peerConnection.onconnectionstatechange = () => {
+                            console.log("Connection state:", conn.peerConnection.connectionState)
+                        }
+                    }
+                    
                     // Set connection timeout
                     const connectionTimeout = setTimeout(() => {
-                        console.log("Connection attempt timed out after 10 seconds")
+                        console.log("Connection attempt timed out after 30 seconds")
                         conn.close()
-                    }, 10000)
+                    }, 30000) // Increased to 30 seconds
                     
                     conn.on("data", (data)=>{
                         getData(data)
