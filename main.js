@@ -38,17 +38,17 @@ var peer = new Peer(id, {
         'iceServers': [
             { urls: 'stun:stun.l.google.com:19302' },
             { urls: 'stun:stun1.l.google.com:19302' },
-            { urls: 'stun:ice.codeshare.live:3478' },
             {
                 urls: 'turn:openrelay.metered.ca:80',
                 username: 'openrelayproject',
                 credential: 'openrelayproject'
-            },
-            {
-                urls: 'turn:ice.codeshare.live:3478',
-                username: 'testuser',
-                credential: 'testpass'
             }
+            // Temporarily commenting out your TURN server to test
+            // {
+            //     urls: 'turn:ice.codeshare.live:3478',
+            //     username: 'testuser',
+            //     credential: 'testpass'
+            // }
         ],
         'iceCandidatePoolSize': 10
     }
@@ -101,17 +101,17 @@ var peer = new Peer(id, {
                     'iceServers': [
                         { urls: 'stun:stun.l.google.com:19302' },
                         { urls: 'stun:stun1.l.google.com:19302' },
-                        { urls: 'stun:ice.codeshare.live:3478' },
                         {
                             urls: 'turn:openrelay.metered.ca:80',
                             username: 'openrelayproject',
                             credential: 'openrelayproject'
-                        },
-                        {
-                            urls: 'turn:ice.codeshare.live:3478',
-                            username: 'testuser',
-                            credential: 'testpass'
                         }
+                        // Temporarily commenting out your TURN server to test
+                        // {
+                        //     urls: 'turn:ice.codeshare.live:3478',
+                        //     username: 'testuser',
+                        //     credential: 'testpass'
+                        // }
                     ],
                     'iceCandidatePoolSize': 10
                 }
