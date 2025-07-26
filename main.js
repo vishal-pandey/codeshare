@@ -13,12 +13,27 @@ var liveCounter = 0
 var liveCounter_ = 0
 
 function mainFunction() {
+console.log("Starting mainFunction, trying to connect to PeerJS server...")
+
+// Test PeerJS server connectivity first
+fetch('https://peerjs.codeshare.live/')
+    .then(response => {
+        console.log("PeerJS server responded:", response.status)
+        return response.text()
+    })
+    .then(data => {
+        console.log("PeerJS server response:", data.substring(0, 100) + "...")
+    })
+    .catch(err => {
+        console.log("PeerJS server connection test failed:", err)
+    })
 
 var peer = new Peer(id, {
     host: 'peerjs.codeshare.live',
     port: 443,
     path: '/',
     secure: true,
+    debug: 2, // Add debug logging
     config: {
         'iceServers': [
             { urls: 'stun:ice.codeshare.live:3478' },
@@ -72,6 +87,7 @@ var peer = new Peer(id, {
                 port: 443,
                 path: '/',
                 secure: true,
+                debug: 2, // Add debug logging
                 config: {
                     'iceServers': [
                         { urls: 'stun:ice.codeshare.live:3478' },
@@ -86,48 +102,57 @@ var peer = new Peer(id, {
             peer1.on("open", (newId)=>{
                 console.log("Peer1 opened with ID:", newId, "connecting to:", id)
                 setRemote()
-                const conn = peer1.connect(id);
-                theConnection = conn
                 
-                conn.on("data", (data)=>{
-                    getData(data)
-                })
+                // Add a small delay before connecting
+                setTimeout(() => {
+                    const conn = peer1.connect(id);
+                    theConnection = conn
+                    
+                    conn.on("data", (data)=>{
+                        getData(data)
+                    })
 
-                conn.on("open", ()=>{
-                    console.log("Remote connection established successfully")
-                    connectionTracker = true
-                    sendData("!!!PING!!!")
-                    let interval = setInterval(()=>{
-                        if(connectionTracker === false) {
-                            clearInterval(interval)
-                            console.log("Connection lost, reconnecting...")
-                            mainFunction()
-                        } else {
-                            connectionTracker = false
-                        }
-                    }, 2100)
-                })
+                    conn.on("open", ()=>{
+                        console.log("Remote connection established successfully")
+                        connectionTracker = true
+                        sendData("!!!PING!!!")
+                        let interval = setInterval(()=>{
+                            if(connectionTracker === false) {
+                                clearInterval(interval)
+                                console.log("Connection lost, reconnecting...")
+                                mainFunction()
+                            } else {
+                                connectionTracker = false
+                            }
+                        }, 2100)
+                    })
 
-                conn.on("close", ()=>{
-                    console.log("Remote connection closed, reconnecting...")
-                    mainFunction()
-                })
-                
-                conn.on("error", (err)=>{
-                    console.log("Remote connection error:", err)
-                })
+                    conn.on("close", ()=>{
+                        console.log("Remote connection closed, reconnecting...")
+                        mainFunction()
+                    })
+                    
+                    conn.on("error", (err)=>{
+                        console.log("Remote connection error:", err)
+                    })
+                }, 1000) // Wait 1 second before trying to connect
             })
 
     
             peer1.on("error", (err)=>{
                 console.log("Peer1 error:", err.type, err)
                 if(err.type === "peer-unavailable") {
-                    console.log("Target peer not found, retrying in 2 seconds...")
+                    console.log("Target peer not found, retrying in 5 seconds...")
                     setTimeout(()=>{
                         mainFunction()
-                    }, 2000)
+                    }, 5000) // Increased retry delay
                 }
             })
+        } else if(err.type === "network") {
+            console.log("Network error, retrying in 3 seconds...")
+            setTimeout(()=>{
+                mainFunction()
+            }, 3000)
         }
     })
 }
