@@ -40,6 +40,11 @@ var peer = new Peer(id, {
             { urls: 'stun:stun1.l.google.com:19302' },
             { urls: 'stun:ice.codeshare.live:3478' },
             {
+                urls: 'turn:openrelay.metered.ca:80',
+                username: 'openrelayproject',
+                credential: 'openrelayproject'
+            },
+            {
                 urls: 'turn:ice.codeshare.live:3478',
                 username: 'testuser',
                 credential: 'testpass'
@@ -73,13 +78,6 @@ var peer = new Peer(id, {
         console.log("Host peer opened with ID:", id)
         console.log("Waiting for connections...")
         
-        // Test peer listing if available
-        if(peer.listAllPeers) {
-            peer.listAllPeers((peers) => {
-                console.log("Available peers on server:", peers)
-            })
-        }
-        
         window.addEventListener("beforeunload", ()=>{
             peer.destroy()
         })
@@ -104,6 +102,11 @@ var peer = new Peer(id, {
                         { urls: 'stun:stun.l.google.com:19302' },
                         { urls: 'stun:stun1.l.google.com:19302' },
                         { urls: 'stun:ice.codeshare.live:3478' },
+                        {
+                            urls: 'turn:openrelay.metered.ca:80',
+                            username: 'openrelayproject',
+                            credential: 'openrelayproject'
+                        },
                         {
                             urls: 'turn:ice.codeshare.live:3478',
                             username: 'testuser',
@@ -182,6 +185,9 @@ var peer = new Peer(id, {
             setTimeout(()=>{
                 mainFunction()
             }, 3000)
+        } else if(err.type === "server-error") {
+            console.log("Server error (possibly peer discovery disabled), continuing anyway...")
+            // Don't retry, just continue - the peer is still connected
         }
     })
 }
