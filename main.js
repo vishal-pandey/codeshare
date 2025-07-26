@@ -52,16 +52,21 @@ var peer = new Peer(id, {
     
     peer.on("open", (id)=>{
         setHost()
-        console.log(id, "ID")
-        window.addEventListener("onunload", ()=>{
+        console.log("Host peer opened with ID:", id)
+        console.log("Waiting for connections...")
+        window.addEventListener("beforeunload", ()=>{
             peer.destroy()
         })
     })
     
-    
+    peer.on("disconnected", ()=>{
+        console.log("Peer disconnected from server")
+    })
     
     peer.on("error", (err)=>{
+        console.log("Peer error:", err.type, err)
         if(err.type==="unavailable-id") {
+            console.log("ID unavailable, becoming remote peer")
             var peer1 = new Peer({
                 host: 'peerjs.codeshare.live',
                 port: 443,
@@ -78,22 +83,24 @@ var peer = new Peer(id, {
                     ]
                 }
             });
-            peer1.on("open", ()=>{
-                console.log("Peer1 opened, connecting to:", id)
+            peer1.on("open", (newId)=>{
+                console.log("Peer1 opened with ID:", newId, "connecting to:", id)
                 setRemote()
                 const conn = peer1.connect(id);
                 theConnection = conn
+                
                 conn.on("data", (data)=>{
                     getData(data)
                 })
 
                 conn.on("open", ()=>{
-                    console.log("Remote connection established")
+                    console.log("Remote connection established successfully")
                     connectionTracker = true
                     sendData("!!!PING!!!")
                     let interval = setInterval(()=>{
                         if(connectionTracker === false) {
                             clearInterval(interval)
+                            console.log("Connection lost, reconnecting...")
                             mainFunction()
                         } else {
                             connectionTracker = false
@@ -102,7 +109,7 @@ var peer = new Peer(id, {
                 })
 
                 conn.on("close", ()=>{
-                    console.log("Remote connection closed")
+                    console.log("Remote connection closed, reconnecting...")
                     mainFunction()
                 })
                 
@@ -113,7 +120,13 @@ var peer = new Peer(id, {
 
     
             peer1.on("error", (err)=>{
-                console.log(err.type)
+                console.log("Peer1 error:", err.type, err)
+                if(err.type === "peer-unavailable") {
+                    console.log("Target peer not found, retrying in 2 seconds...")
+                    setTimeout(()=>{
+                        mainFunction()
+                    }, 2000)
+                }
             })
         }
     })
@@ -210,13 +223,18 @@ require(["vs/editor/editor.main"], function () {
         language: null,
         theme: 'vs-dark'
     });
-    window.editor.getModel().onDidChangeContent((event) => {
-        if(!incoming) {
-            let data = window.editor.getValue()
-            console.log("Editor changed, sending data:", data.length + " characters")
-            sendData(data)
-        }
-    });
+    
+    // Add a small delay to ensure editor is fully initialized
+    setTimeout(() => {
+        window.editor.getModel().onDidChangeContent((event) => {
+            if(!incoming) {
+                let data = window.editor.getValue()
+                console.log("Editor changed, sending data:", data.length + " characters")
+                sendData(data)
+            }
+        });
+        console.log("Monaco editor initialized and ready")
+    }, 100);
 });
 
 function makeid(length) {
