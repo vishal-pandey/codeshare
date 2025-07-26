@@ -36,13 +36,16 @@ var peer = new Peer(id, {
     debug: 2, // Add debug logging
     config: {
         'iceServers': [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' },
             { urls: 'stun:ice.codeshare.live:3478' },
             {
                 urls: 'turn:ice.codeshare.live:3478',
                 username: 'testuser',
                 credential: 'testpass'
             }
-        ]
+        ],
+        'iceCandidatePoolSize': 10
     }
 });
     
@@ -69,6 +72,14 @@ var peer = new Peer(id, {
         setHost()
         console.log("Host peer opened with ID:", id)
         console.log("Waiting for connections...")
+        
+        // Test peer listing if available
+        if(peer.listAllPeers) {
+            peer.listAllPeers((peers) => {
+                console.log("Available peers on server:", peers)
+            })
+        }
+        
         window.addEventListener("beforeunload", ()=>{
             peer.destroy()
         })
@@ -90,23 +101,38 @@ var peer = new Peer(id, {
                 debug: 2, // Add debug logging
                 config: {
                     'iceServers': [
+                        { urls: 'stun:stun.l.google.com:19302' },
+                        { urls: 'stun:stun1.l.google.com:19302' },
                         { urls: 'stun:ice.codeshare.live:3478' },
                         {
                             urls: 'turn:ice.codeshare.live:3478',
                             username: 'testuser',
                             credential: 'testpass'
                         }
-                    ]
+                    ],
+                    'iceCandidatePoolSize': 10
                 }
             });
             peer1.on("open", (newId)=>{
                 console.log("Peer1 opened with ID:", newId, "connecting to:", id)
                 setRemote()
                 
+                // Test if target peer exists by making a connection attempt
+                console.log("Testing if target peer", id, "exists...")
+                
                 // Add a small delay before connecting
                 setTimeout(() => {
-                    const conn = peer1.connect(id);
+                    const conn = peer1.connect(id, {
+                        reliable: true,
+                        serialization: 'json'
+                    });
                     theConnection = conn
+                    
+                    // Set connection timeout
+                    const connectionTimeout = setTimeout(() => {
+                        console.log("Connection attempt timed out after 10 seconds")
+                        conn.close()
+                    }, 10000)
                     
                     conn.on("data", (data)=>{
                         getData(data)
@@ -114,6 +140,7 @@ var peer = new Peer(id, {
 
                     conn.on("open", ()=>{
                         console.log("Remote connection established successfully")
+                        clearTimeout(connectionTimeout)
                         connectionTracker = true
                         sendData("!!!PING!!!")
                         let interval = setInterval(()=>{
@@ -129,13 +156,15 @@ var peer = new Peer(id, {
 
                     conn.on("close", ()=>{
                         console.log("Remote connection closed, reconnecting...")
+                        clearTimeout(connectionTimeout)
                         mainFunction()
                     })
                     
                     conn.on("error", (err)=>{
                         console.log("Remote connection error:", err)
+                        clearTimeout(connectionTimeout)
                     })
-                }, 1000) // Wait 1 second before trying to connect
+                }, 2000) // Increased delay to 2 seconds
             })
 
     
