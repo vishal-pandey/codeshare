@@ -38,8 +38,20 @@ var peer = new Peer(id, {
         'iceServers': [
             { urls: 'stun:stun.l.google.com:19302' },
             { urls: 'stun:stun1.l.google.com:19302' },
+            { urls: 'stun:stun2.l.google.com:19302' },
+            { urls: 'stun:stun3.l.google.com:19302' },
             {
                 urls: 'turn:openrelay.metered.ca:80',
+                username: 'openrelayproject',
+                credential: 'openrelayproject'
+            },
+            {
+                urls: 'turn:openrelay.metered.ca:443',
+                username: 'openrelayproject',
+                credential: 'openrelayproject'
+            },
+            {
+                urls: 'turns:openrelay.metered.ca:443?transport=tcp',
                 username: 'openrelayproject',
                 credential: 'openrelayproject'
             }
@@ -50,7 +62,8 @@ var peer = new Peer(id, {
             //     credential: 'testpass'
             // }
         ],
-        'iceCandidatePoolSize': 10
+        'iceCandidatePoolSize': 10,
+        'iceTransportPolicy': 'all' // Use all available transports
     }
 });
     
@@ -112,8 +125,20 @@ var peer = new Peer(id, {
                     'iceServers': [
                         { urls: 'stun:stun.l.google.com:19302' },
                         { urls: 'stun:stun1.l.google.com:19302' },
+                        { urls: 'stun:stun2.l.google.com:19302' },
+                        { urls: 'stun:stun3.l.google.com:19302' },
                         {
                             urls: 'turn:openrelay.metered.ca:80',
+                            username: 'openrelayproject',
+                            credential: 'openrelayproject'
+                        },
+                        {
+                            urls: 'turn:openrelay.metered.ca:443',
+                            username: 'openrelayproject',
+                            credential: 'openrelayproject'
+                        },
+                        {
+                            urls: 'turns:openrelay.metered.ca:443?transport=tcp',
                             username: 'openrelayproject',
                             credential: 'openrelayproject'
                         }
@@ -124,7 +149,8 @@ var peer = new Peer(id, {
                         //     credential: 'testpass'
                         // }
                     ],
-                    'iceCandidatePoolSize': 10
+                    'iceCandidatePoolSize': 10,
+                    'iceTransportPolicy': 'all' // Use all available transports
                 }
             });
             peer1.on("open", (newId)=>{
@@ -149,6 +175,16 @@ var peer = new Peer(id, {
                         }
                         conn.peerConnection.onconnectionstatechange = () => {
                             console.log("Connection state:", conn.peerConnection.connectionState)
+                        }
+                        conn.peerConnection.onicegatheringstatechange = () => {
+                            console.log("ICE gathering state:", conn.peerConnection.iceGatheringState)
+                        }
+                        conn.peerConnection.onicecandidate = (event) => {
+                            if (event.candidate) {
+                                console.log("ICE candidate:", event.candidate.type, event.candidate.address || 'hidden')
+                            } else {
+                                console.log("ICE gathering completed")
+                            }
                         }
                     }
                     
